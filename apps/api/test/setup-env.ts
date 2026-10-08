@@ -1,0 +1,4 @@
+import 'reflect-metadata';
+
+process.env.NODE_ENV = 'test';
+process.env.DISABLE_RATE_LIMIT ??= 'true';
