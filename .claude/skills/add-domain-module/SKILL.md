@@ -6,6 +6,7 @@ description: Scaffold or extend a NestJS domain module in apps/api the ArenaCore
 # Adding a domain module
 
 Layout for module `<name>`:
+
 ```
 packages/shared/src/<name>.ts            zod input schemas + output types (export from index.ts)
 apps/api/src/modules/<name>/
@@ -17,6 +18,7 @@ apps/api/test/<name>.e2e-spec.ts         HTTP-level tests against real Postgres
 ```
 
 ## Checklist
+
 1. **Schemas first.** Define the input schema in `@arenacore/shared` and apply it with `@Body(new ZodValidationPipe(schema))`.
 2. **Auth.**
    - Routes require authentication by default. Mark public routes with `@Public()`.
