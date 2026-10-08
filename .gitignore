@@ -10,3 +10,4 @@ coverage/
 .nodeterm/
 playwright-report/
 test-results/
+.next-build/

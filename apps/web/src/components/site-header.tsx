@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth';
 import { NotificationBell } from './notification-bell';
 
 const linkClass = (active: boolean) =>
-  `rounded-md px-3 py-1.5 text-[15px] font-semibold ${active ? 'bg-cobalt-wash text-cobalt-ink' : 'text-muted hover:text-ink'}`;
+  `rounded-md px-2.5 py-1.5 whitespace-nowrap sm:px-3 text-[15px] font-semibold ${active ? 'bg-cobalt-wash text-cobalt-ink' : 'text-muted hover:text-ink'}`;
 
 export function SiteHeader() {
   const { status, user, logout } = useAuth();
@@ -16,12 +16,15 @@ export function SiteHeader() {
     <header className="border-b border-rule bg-surface">
       <nav
         aria-label="Main"
-        className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-4 sm:px-6"
+        className="mx-auto flex h-14 max-w-6xl items-center gap-1 px-4 sm:gap-2 sm:px-6"
       >
-        <Link href="/" className="mr-3 font-display text-2xl font-bold tracking-wide">
+        <Link href="/" className="mr-1 font-display text-2xl font-bold tracking-wide sm:mr-3">
           ArenaCore
         </Link>
-        <Link href="/" className={linkClass(path === '/' || path.startsWith('/t/'))}>
+        <Link
+          href="/"
+          className={`${linkClass(path === '/' || path.startsWith('/t/'))} hidden sm:inline`}
+        >
           Tournaments
         </Link>
         {status === 'signed-in' && (
@@ -34,7 +37,7 @@ export function SiteHeader() {
             </Link>
           </>
         )}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-1 sm:gap-2">
           {status === 'signed-in' && user ? (
             <>
               <NotificationBell />
@@ -46,7 +49,7 @@ export function SiteHeader() {
               </Link>
               <button
                 onClick={() => void logout()}
-                className="rounded-md px-3 py-1.5 text-[15px] font-semibold text-muted hover:text-ink"
+                className="rounded-md px-2.5 py-1.5 whitespace-nowrap text-[15px] font-semibold text-muted hover:text-ink"
               >
                 Sign out
               </button>
@@ -55,7 +58,7 @@ export function SiteHeader() {
             <>
               <Link
                 href="/login"
-                className="rounded-md px-3 py-1.5 text-[15px] font-semibold text-muted hover:text-ink"
+                className="rounded-md px-2.5 py-1.5 whitespace-nowrap text-[15px] font-semibold text-muted hover:text-ink"
               >
                 Sign in
               </Link>
