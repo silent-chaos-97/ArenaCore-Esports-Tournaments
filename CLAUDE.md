@@ -20,7 +20,12 @@ pnpm db:migrate && pnpm db:seed      # run from the root; proxies to apps/api
 pnpm dev                             # api :4000, web :3000
 pnpm dev:worker                      # outbox relay, notifications, scheduler
 pnpm lint && pnpm typecheck && pnpm test
+pnpm e2e                             # Playwright full-tournament simulation
+pnpm --filter @arenacore/api seed:demo  # demo data via the HTTP API
 ```
+
+`packages/shared` and `packages/bracket` compile to `dist/`. Rebuild them (`pnpm --filter "./packages/*" build`) after changing them, or the API and web will see stale types.
+After any Prisma schema change, run `prisma generate`. Prisma 7's `migrate dev` does not regenerate the client.
 
 ## Non-negotiable rules
 

@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Optional } from '@nestjs/common';
 import type { ListNotificationsQuery, NotificationDto, Page } from '@arenacore/shared';
 import { Prisma, type Notification } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
+import { MetricsService } from '../metrics/metrics.module.js';
 import { DiscordChannel, EmailChannel } from './channels.js';
 import { RecipientResolver } from './recipients.js';
 import { planNotifications } from './templates.js';
@@ -30,6 +31,7 @@ export class NotificationsService {
     private readonly recipients: RecipientResolver,
     private readonly email: EmailChannel,
     private readonly discord: DiscordChannel,
+    @Optional() private readonly metrics?: MetricsService,
   ) {}
 
   onCreated(listener: NotificationListener): void {
@@ -103,6 +105,7 @@ export class NotificationsService {
         where: { id: deliveryId },
         data: { status: 'SENT', sentAt: new Date(), attempts: { increment: 1 }, lastError: null },
       });
+      this.metrics?.notificationDeliveries.inc({ channel: 'EMAIL', status: 'SENT' });
       return 'SENT';
     } catch (error) {
       await this.prisma.notificationDelivery.update({
@@ -113,6 +116,7 @@ export class NotificationsService {
           lastError: String(error).slice(0, 500),
         },
       });
+      this.metrics?.notificationDeliveries.inc({ channel: 'EMAIL', status: 'FAILED' });
       throw error;
     }
   }

@@ -1,5 +1,6 @@
-import { Global, Inject, Injectable, Module } from '@nestjs/common';
+import { Global, Inject, Injectable, Module, Optional } from '@nestjs/common';
 import type { Redis } from 'ioredis';
+import { MetricsService } from '../../modules/metrics/metrics.module.js';
 import { REDIS } from '../redis.module.js';
 
 /**
@@ -11,15 +12,20 @@ export class CacheService {
   hits = 0;
   misses = 0;
 
-  constructor(@Inject(REDIS) private readonly redis: Redis) {}
+  constructor(
+    @Inject(REDIS) private readonly redis: Redis,
+    @Optional() private readonly metrics?: MetricsService,
+  ) {}
 
   async getOrSet<T>(key: string, ttlSeconds: number, load: () => Promise<T>): Promise<T> {
     const cached = await this.redis.get(key);
     if (cached !== null) {
       this.hits += 1;
+      this.metrics?.cacheRequests.inc({ result: 'hit' });
       return JSON.parse(cached) as T;
     }
     this.misses += 1;
+    this.metrics?.cacheRequests.inc({ result: 'miss' });
     const value = await load();
     await this.redis.set(key, JSON.stringify(value), 'EX', ttlSeconds);
     return value;

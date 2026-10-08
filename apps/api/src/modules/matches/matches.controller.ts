@@ -27,6 +27,7 @@ import { Idempotent } from '../../common/idempotency/idempotency.interceptor.js'
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe.js';
 import { RateLimit } from '../../common/rate-limit/rate-limit.js';
 import { TenantGuard } from '../../common/tenant/tenant.guard.js';
+import { MetricsService } from '../metrics/metrics.module.js';
 import { MatchesService } from './matches.service.js';
 import { ResultsService } from './results.service.js';
 
@@ -115,7 +116,10 @@ export class OrganizerMatchesController {
 
 @Controller('webhooks/games')
 export class GameWebhooksController {
-  constructor(private readonly results: ResultsService) {}
+  constructor(
+    private readonly results: ResultsService,
+    private readonly metrics: MetricsService,
+  ) {}
 
   @Public()
   @RateLimit({ limit: 600, windowSeconds: 60 })
@@ -127,6 +131,15 @@ export class GameWebhooksController {
     @Headers('x-arenacore-signature') signature: string | undefined,
     @Body() body: unknown,
   ) {
-    return this.results.ingestWebhook(provider, req.rawBody, signature, body);
+    return this.results.ingestWebhook(provider, req.rawBody, signature, body).then(
+      (result) => {
+        this.metrics.webhookRequests.inc({ provider, outcome: result.status });
+        return result;
+      },
+      (error: unknown) => {
+        this.metrics.webhookRequests.inc({ provider, outcome: 'failed' });
+        throw error;
+      },
+    );
   }
 }

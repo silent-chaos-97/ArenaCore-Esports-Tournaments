@@ -54,7 +54,10 @@ export function emptyForm(): TournamentForm {
     grandFinalReset: true,
     requireApproval: true,
     minAge: '',
-    registrationOpensAt: at(0),
+    // Registration opens immediately unless the organizer picks a later time.
+    registrationOpensAt: toLocalInput(
+      new Date(Math.floor(Date.now() / 60_000) * 60_000).toISOString(),
+    ),
     registrationClosesAt: at(6 * 24 * hour),
     useCheckIn: true,
     checkInOpensAt: at(7 * 24 * hour - hour),

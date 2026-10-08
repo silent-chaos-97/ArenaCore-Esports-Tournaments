@@ -26,4 +26,9 @@ export default tseslint.config(
       '@typescript-eslint/consistent-type-imports': 'off',
     },
   },
+  {
+    // k6 scripts run in the k6 runtime, not Node.
+    files: ['loadtest/**/*.js'],
+    languageOptions: { globals: { __ENV: 'readonly', __VU: 'readonly', __ITER: 'readonly' } },
+  },
 );

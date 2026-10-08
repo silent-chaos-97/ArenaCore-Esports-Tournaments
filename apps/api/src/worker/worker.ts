@@ -8,7 +8,9 @@ import {
 import type { ApiEnv } from '@arenacore/shared';
 import { Queue, Worker } from 'bullmq';
 import { Redis } from 'ioredis';
+import { createServer } from 'node:http';
 import { API_ENV } from '../config/config.module.js';
+import { MetricsService } from '../modules/metrics/metrics.module.js';
 import { OutboxRelay } from '../modules/events/outbox-relay.js';
 import { SchedulerService } from '../modules/events/scheduler.service.js';
 import {
@@ -36,6 +38,7 @@ export class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutd
     private readonly scheduler: SchedulerService,
     private readonly notifications: NotificationsService,
     private readonly realtime: RealtimeService,
+    private readonly metrics: MetricsService,
   ) {
     this.connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
   }
@@ -91,6 +94,20 @@ export class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutd
       () => emails.close(),
     );
 
+    for (const queue of [events, emails]) {
+      this.metrics.gauge(
+        `queue_depth_${queue.name.replaceAll('-', '_')}`,
+        `Jobs in the ${queue.name} queue by state`,
+        async () =>
+          (await queue.getJobCounts('waiting', 'active', 'delayed', 'failed')) as Record<
+            string,
+            number
+          >,
+        'state',
+      );
+    }
+    this.serveMetrics();
+
     this.loop('outbox-relay', 500, async () => {
       while ((await this.relay.relayOnce()) > 0 && !this.stopping);
     });
@@ -100,6 +117,21 @@ export class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutd
         this.logger.log(`scheduler ${JSON.stringify(result)}`);
     });
     this.logger.log('Worker started');
+  }
+
+  /** Prometheus scrape endpoint for the worker process. */
+  private serveMetrics(): void {
+    const server = createServer((req, res) => {
+      if (req.url !== '/metrics') {
+        res.writeHead(404).end();
+        return;
+      }
+      void this.metrics.registry.metrics().then((body) => {
+        res.writeHead(200, { 'content-type': this.metrics.registry.contentType }).end(body);
+      });
+    });
+    server.listen(Number(process.env.WORKER_METRICS_PORT ?? 9464));
+    this.closers.push(() => new Promise((resolve) => server.close(resolve)));
   }
 
   private loop(name: string, everyMs: number, fn: () => Promise<void>): void {

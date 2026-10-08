@@ -41,5 +41,19 @@ describe('API skeleton', () => {
     await request(app.getHttpServer()).get('/api/v1/health');
     const res = await request(app.getHttpServer()).get('/metrics').expect(200);
     expect(res.text).toContain('http_request_duration_seconds');
+    for (const metric of [
+      'outbox_backlog',
+      'outbox_relay_lag_seconds',
+      'cache_requests_total',
+      'game_webhook_requests_total',
+    ]) {
+      expect(res.text).toContain(metric);
+    }
+  });
+
+  it('sends security headers', async () => {
+    const res = await request(app.getHttpServer()).get('/api/v1/health').expect(200);
+    expect(res.headers['x-content-type-options']).toBe('nosniff');
+    expect(res.headers['x-powered-by']).toBeUndefined();
   });
 });

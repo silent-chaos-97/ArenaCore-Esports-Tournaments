@@ -1,5 +1,6 @@
 import {
   CallHandler,
+  Global,
   Controller,
   ExecutionContext,
   Get,
@@ -10,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import type { Request, Response } from 'express';
-import { collectDefaultMetrics, Histogram, Registry } from 'prom-client';
+import { collectDefaultMetrics, Counter, Gauge, Histogram, Registry } from 'prom-client';
 import { finalize, Observable } from 'rxjs';
 import { Public } from '../../common/auth/decorators.js';
 
@@ -25,8 +26,57 @@ export class MetricsService {
     registers: [this.registry],
   });
 
+  readonly cacheRequests = new Counter({
+    name: 'cache_requests_total',
+    help: 'Public read-model cache lookups',
+    labelNames: ['result'] as const,
+    registers: [this.registry],
+  });
+
+  readonly webhookRequests = new Counter({
+    name: 'game_webhook_requests_total',
+    help: 'Game provider result callbacks by outcome',
+    labelNames: ['provider', 'outcome'] as const,
+    registers: [this.registry],
+  });
+
+  readonly relayLag = new Histogram({
+    name: 'outbox_relay_lag_seconds',
+    help: 'Time from a state change committing to its event being relayed (match-processing lag)',
+    buckets: [0.1, 0.25, 0.5, 1, 2, 5, 10, 30, 60],
+    registers: [this.registry],
+  });
+
+  readonly notificationDeliveries = new Counter({
+    name: 'notification_deliveries_total',
+    help: 'Notification deliveries by channel and outcome',
+    labelNames: ['channel', 'status'] as const,
+    registers: [this.registry],
+  });
+
   constructor() {
     collectDefaultMetrics({ register: this.registry });
+  }
+
+  /** Registers a gauge whose value is read at scrape time (queue depth, backlog, ...). */
+  gauge(
+    name: string,
+    help: string,
+    read: () => Promise<number | Record<string, number>>,
+    labelName = 'name',
+  ): void {
+    if (this.registry.getSingleMetric(name)) return;
+    new Gauge({
+      name,
+      help,
+      labelNames: [labelName],
+      registers: [this.registry],
+      async collect() {
+        const value = await read().catch(() => -1);
+        if (typeof value === 'number') this.set(value);
+        else for (const [label, v] of Object.entries(value)) this.set({ [labelName]: label }, v);
+      },
+    });
   }
 }
 
@@ -62,6 +112,7 @@ class MetricsController {
   }
 }
 
+@Global()
 @Module({
   controllers: [MetricsController],
   providers: [MetricsService, { provide: APP_INTERCEPTOR, useClass: HttpMetricsInterceptor }],

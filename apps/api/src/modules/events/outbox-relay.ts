@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
+import { MetricsService } from '../metrics/metrics.module.js';
 import type { DomainEventEnvelope } from '../notifications/notifications.service.js';
 
 export type EventSink = (event: DomainEventEnvelope) => Promise<void>;
@@ -14,7 +15,14 @@ export class OutboxRelay {
   private readonly logger = new Logger(OutboxRelay.name);
   private readonly sinks: EventSink[] = [];
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly metrics?: MetricsService,
+  ) {
+    this.metrics?.gauge('outbox_backlog', 'Domain events committed but not yet relayed', () =>
+      this.backlog(),
+    );
+  }
 
   addSink(sink: EventSink): void {
     this.sinks.push(sink);
@@ -45,6 +53,7 @@ export class OutboxRelay {
               data: { processedAt: new Date(), attempts: { increment: 1 } },
             });
             relayed += 1;
+            this.metrics?.relayLag.observe((Date.now() - event.createdAt.getTime()) / 1000);
           } catch (error) {
             this.logger.warn(`Relay of ${event.type} ${id} failed: ${String(error)}`);
             await tx.outboxEvent.update({

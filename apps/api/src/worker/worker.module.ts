@@ -6,6 +6,7 @@ import { PrismaModule } from '../infra/prisma/prisma.module.js';
 import { RedisModule } from '../infra/redis.module.js';
 import { StorageModule } from '../infra/storage/storage.service.js';
 import { EventsModule } from '../modules/events/events.module.js';
+import { MetricsModule } from '../modules/metrics/metrics.module.js';
 import { RealtimeService } from '../modules/realtime/realtime.service.js';
 import { WorkerRuntime } from './worker.js';
 
@@ -25,6 +26,7 @@ import { WorkerRuntime } from './worker.js';
     RedisModule,
     StorageModule,
     PlatformModule,
+    MetricsModule,
     EventsModule,
   ],
   providers: [WorkerRuntime, RealtimeService],

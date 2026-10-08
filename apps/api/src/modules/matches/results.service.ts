@@ -65,6 +65,22 @@ export class ResultsService {
     await this.prisma.$transaction(async (tx) => {
       const match = await lockMatch(tx, matchId);
       const side = await sideForUser(tx, matchId, userId);
+      // A retry of a report that already confirmed the result is a no-op, not an error.
+      const confirmed = await tx.matchResult.findUnique({
+        where: {
+          matchId_source_externalRef: {
+            matchId,
+            source: 'PARTICIPANT',
+            externalRef: `side:${side.slot}`,
+          },
+        },
+      });
+      if (
+        confirmed?.status === 'CONFIRMED' &&
+        confirmed.scoreA === input.scoreA &&
+        confirmed.scoreB === input.scoreB
+      )
+        return;
       if (!REPORTABLE.includes(match.status)) {
         throw new DomainError(
           'MATCH_NOT_REPORTABLE',
