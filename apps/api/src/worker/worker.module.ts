@@ -6,6 +6,7 @@ import { PrismaModule } from '../infra/prisma/prisma.module.js';
 import { RedisModule } from '../infra/redis.module.js';
 import { StorageModule } from '../infra/storage/storage.service.js';
 import { EventsModule } from '../modules/events/events.module.js';
+import { RealtimeService } from '../modules/realtime/realtime.service.js';
 import { WorkerRuntime } from './worker.js';
 
 @Module({
@@ -26,6 +27,6 @@ import { WorkerRuntime } from './worker.js';
     PlatformModule,
     EventsModule,
   ],
-  providers: [WorkerRuntime],
+  providers: [WorkerRuntime, RealtimeService],
 })
 export class WorkerModule {}

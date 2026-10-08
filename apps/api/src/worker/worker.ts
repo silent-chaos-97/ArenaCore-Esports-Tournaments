@@ -15,6 +15,7 @@ import {
   NotificationsService,
   type DomainEventEnvelope,
 } from '../modules/notifications/notifications.service.js';
+import { RealtimeService } from '../modules/realtime/realtime.service.js';
 import { DOMAIN_EVENTS_QUEUE, EMAIL_QUEUE, RETRY_POLICY } from './queues.js';
 
 /**
@@ -34,6 +35,7 @@ export class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutd
     private readonly relay: OutboxRelay,
     private readonly scheduler: SchedulerService,
     private readonly notifications: NotificationsService,
+    private readonly realtime: RealtimeService,
   ) {
     this.connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
   }
@@ -43,6 +45,10 @@ export class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutd
       connection: this.connection,
     });
     const emails = new Queue<{ deliveryId: string }>(EMAIL_QUEUE, { connection: this.connection });
+
+    // Live updates go straight to Redis pub/sub so spectators see changes within the relay interval.
+    this.relay.addSink((event) => this.realtime.publishEvent(event));
+    this.notifications.onCreated((notification) => this.realtime.publishNotification(notification));
 
     // jobId = event id: a re-relayed event is ignored by BullMQ instead of processed twice.
     this.relay.addSink(async (event) => {
