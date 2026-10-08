@@ -16,7 +16,8 @@
     "db:seed": "prisma db seed",
     "db:reset": "prisma migrate reset --force",
     "dev:worker": "node --watch --env-file-if-exists=../../.env --import @swc-node/register/esm-register src/worker-main.ts",
-    "start:worker": "node --env-file-if-exists=../../.env dist/worker-main.js"
+    "start:worker": "node --env-file-if-exists=../../.env dist/worker-main.js",
+    "seed:demo": "node --import @swc-node/register/esm-register scripts/seed-demo.ts"
   },
   "dependencies": {
     "@arenacore/bracket": "workspace:*",
