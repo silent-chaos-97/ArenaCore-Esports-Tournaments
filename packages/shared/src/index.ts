@@ -7,3 +7,4 @@ export * from './common.js';
 export * from './organizations.js';
 export * from './teams.js';
 export * from './tournaments.js';
+export * from './registrations.js';

@@ -1,7 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { PrismaService } from '../../src/infra/prisma/prisma.service.js';
-import { bearer, registerPrivilegedUser, type TestUser } from './auth.js';
+import { bearer, registerPrivilegedUser, registerUser, type TestUser } from './auth.js';
 
 const HOUR = 60 * 60 * 1000;
 
@@ -62,4 +62,83 @@ export async function createTournament(
     .set(bearer(org.owner))
     .expect(200);
   return published.body;
+}
+
+export interface TeamFixture {
+  teamId: string;
+  name: string;
+  captain: TestUser & { playerId: string };
+  players: (TestUser & { playerId: string })[];
+  /** Captain first, then players, all as starters except trailing substitutes. */
+  roster: { playerId: string; role: 'CAPTAIN' | 'PLAYER' | 'SUBSTITUTE' }[];
+}
+
+let teamCounter = 0;
+
+/** A team whose members all joined and linked accounts for the given game. */
+export async function createTeam(
+  app: INestApplication,
+  options: {
+    size?: number;
+    substitutes?: number;
+    gameSlug?: string;
+    name?: string;
+    linkAccounts?: boolean;
+  } = {},
+): Promise<TeamFixture> {
+  const { size = 2, substitutes = 0, gameSlug = 'valorant', linkAccounts = true } = options;
+  teamCounter += 1;
+  const name = options.name ?? `Team ${teamCounter}`;
+  const http = () => request(app.getHttpServer());
+  const gameId = await gameIdOf(app, gameSlug);
+  const prisma = app.get(PrismaService);
+  const withPlayer = async (u: TestUser) => {
+    const player = await prisma.player.findUniqueOrThrow({ where: { userId: u.id } });
+    if (linkAccounts) {
+      await http()
+        .post('/api/v1/players/me/game-accounts')
+        .set(bearer(u))
+        .send({
+          gameId,
+          externalPlayerId: `${u.email}#${gameSlug}`,
+          username: u.email.split('@')[0],
+        })
+        .expect(201);
+    }
+    return { ...u, playerId: player.id };
+  };
+
+  const captain = await withPlayer(await registerUser(app));
+  const team = await http().post('/api/v1/teams').set(bearer(captain)).send({ name }).expect(201);
+  const players: TeamFixture['players'] = [];
+  for (let i = 1; i < size + substitutes; i++) {
+    const p = await withPlayer(await registerUser(app));
+    const invite = await http()
+      .post(`/api/v1/teams/${team.body.id}/invites`)
+      .set(bearer(captain))
+      .send({ email: p.email, role: i >= size ? 'SUBSTITUTE' : 'PLAYER' })
+      .expect(201);
+    await http().post(`/api/v1/team-invites/${invite.body.id}/accept`).set(bearer(p)).expect(200);
+    players.push(p);
+  }
+  const roster: TeamFixture['roster'] = [
+    { playerId: captain.playerId, role: 'CAPTAIN' },
+    ...players.map((p, i) => ({
+      playerId: p.playerId,
+      role: i + 1 >= size ? ('SUBSTITUTE' as const) : ('PLAYER' as const),
+    })),
+  ];
+  return { teamId: team.body.id, name, captain, players, roster };
+}
+
+export function registerTeam(
+  app: INestApplication,
+  tournamentId: string,
+  team: TeamFixture,
+  rulesVersion = 1,
+): request.Test {
+  return request(app.getHttpServer())
+    .post(`/api/v1/tournaments/${tournamentId}/registrations`)
+    .set(bearer(team.captain))
+    .send({ teamId: team.teamId, members: team.roster, acceptRules: true, rulesVersion });
 }
