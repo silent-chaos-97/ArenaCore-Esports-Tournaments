@@ -18,6 +18,7 @@ docker compose up -d                 # postgres:5432 redis:6379 s3mock:9090 mail
 pnpm install
 pnpm db:migrate && pnpm db:seed      # run from the root; proxies to apps/api
 pnpm dev                             # api :4000, web :3000
+pnpm dev:worker                      # outbox relay, notifications, scheduler
 pnpm lint && pnpm typecheck && pnpm test
 ```
 

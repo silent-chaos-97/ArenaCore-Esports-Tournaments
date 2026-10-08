@@ -15,6 +15,8 @@ import { CompetitionModule } from './modules/competition/competition.module.js';
 import { MatchesModule } from './modules/matches/matches.module.js';
 import { DisputesModule } from './modules/disputes/disputes.module.js';
 import { StorageModule } from './infra/storage/storage.service.js';
+import { EventsModule } from './modules/events/events.module.js';
+import { NotificationsModule } from './modules/notifications/notifications.module.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
 import { HealthController } from './modules/health/health.controller.js';
 import { MetricsModule } from './modules/metrics/metrics.module.js';
@@ -46,6 +48,8 @@ const isDev = process.env.NODE_ENV === 'development';
     CompetitionModule,
     MatchesModule,
     DisputesModule,
+    NotificationsModule,
+    EventsModule,
   ],
   controllers: [HealthController],
   providers: [
