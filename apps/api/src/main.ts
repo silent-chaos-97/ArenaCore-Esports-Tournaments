@@ -7,7 +7,7 @@ import { configureApp } from './bootstrap.js';
 import { API_ENV } from './config/config.module.js';
 
 async function main(): Promise<void> {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create(AppModule, { bufferLogs: true, rawBody: true });
   app.useLogger(app.get(Logger));
   configureApp(app);
   const env = app.get<ApiEnv>(API_ENV);

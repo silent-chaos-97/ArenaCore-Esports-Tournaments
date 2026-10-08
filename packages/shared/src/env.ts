@@ -23,6 +23,8 @@ export const apiEnvSchema = z.object({
   S3_SECRET_KEY: z.string().default('dev'),
   S3_EVIDENCE_BUCKET: z.string().default('arenacore-evidence'),
   S3_ASSETS_BUCKET: z.string().default('arenacore-assets'),
+  /** Shared secret used to verify game-provider webhook signatures (HMAC-SHA256). */
+  GAME_WEBHOOK_SECRET: z.string().min(16).default('dev-game-webhook-secret'),
   SMTP_HOST: z.string().default('localhost'),
   SMTP_PORT: z.coerce.number().int().default(1025),
   MAIL_FROM: z.string().default('ArenaCore <no-reply@arenacore.local>'),

@@ -179,3 +179,78 @@ export function openCheckInWindow(): Record<string, string> {
     startsAt: new Date(now + 2 * 3600_000).toISOString(),
   };
 }
+
+export interface StartedTournament {
+  tournamentId: string;
+  teams: (TeamFixture & { registrationId: string })[];
+  /** Captain of the team holding a registration. */
+  captainOf(registrationId: string): TestUser;
+  bracket(): Promise<{ status: string; matches: Record<string, MatchView> }>;
+}
+
+export interface MatchView {
+  id: string;
+  key: string;
+  status: string;
+  version: number;
+  a: { registrationId: string; teamId: string } | null;
+  b: { registrationId: string; teamId: string } | null;
+  winnerSlot: 'A' | 'B' | null;
+  scoreA: number | null;
+  scoreB: number | null;
+}
+
+/** Creates, fills (seeded in registration order) and starts a tournament. */
+export async function startTournament(
+  app: INestApplication,
+  org: OrgFixture,
+  teamCount: number,
+  overrides: Record<string, unknown> = {},
+): Promise<StartedTournament> {
+  const http = () => request(app.getHttpServer());
+  const t = await createTournament(app, org, {
+    checkInOpensAt: null,
+    checkInClosesAt: null,
+    matchCheckInMinutes: 0,
+    maxTeams: 16,
+    ...overrides,
+  });
+  const teams = await approvedTeams(app, org, t.id, teamCount);
+  const base = `/api/v1/orgs/${org.orgId}/tournaments/${t.id}`;
+  await http()
+    .put(`${base}/seeding`)
+    .set(bearer(org.owner))
+    .send({ order: teams.map((x) => x.registrationId) })
+    .expect(200);
+  await http().post(`${base}/start`).set(bearer(org.owner)).expect(200);
+  const byReg = new Map(teams.map((x) => [x.registrationId, x]));
+  return {
+    tournamentId: t.id,
+    teams,
+    captainOf: (registrationId) => byReg.get(registrationId)!.captain,
+    async bracket() {
+      const res = await http().get(`${base}/bracket`).set(bearer(org.owner)).expect(200);
+      const matches: Record<string, MatchView> = {};
+      for (const round of res.body.stages[0].rounds)
+        for (const m of round.matches) matches[m.key] = m;
+      return { status: res.body.status, matches };
+    },
+  };
+}
+
+/** Both captains report the same score. */
+export async function playMatch(
+  app: INestApplication,
+  started: StartedTournament,
+  match: MatchView,
+  scoreA: number,
+  scoreB: number,
+) {
+  for (const side of [match.a!, match.b!]) {
+    await request(app.getHttpServer())
+      .post(`/api/v1/matches/${match.id}/results`)
+      .set(bearer(started.captainOf(side.registrationId)))
+      .send({ scoreA, scoreB })
+      .expect(200);
+  }
+}

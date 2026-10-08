@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import {
+  BracketError,
   applyResult,
   champion,
   createState,
@@ -10,6 +11,7 @@ import {
   type BracketState,
   type Side,
 } from '@arenacore/bracket';
+import { registerProblemMapper } from '../../common/errors/problem-details.filter.js';
 import { OutboxService } from '../../common/outbox/outbox.service.js';
 import type { Tx } from '../../infra/prisma/prisma.service.js';
 import type { Match, Prisma, Stage, Tournament } from '../../generated/prisma/client.js';
@@ -37,6 +39,17 @@ export interface SyncResult {
   readyMatchIds: string[];
   championRegistrationId: string | null;
 }
+
+registerProblemMapper((error) =>
+  error instanceof BracketError
+    ? {
+        type: 'https://arenacore.dev/problems/bracket',
+        title: error.message,
+        status: error.code === 'UNKNOWN_MATCH' ? HttpStatus.NOT_FOUND : HttpStatus.CONFLICT,
+        code: `BRACKET_${error.code}`,
+      }
+    : undefined,
+);
 
 const ACTIVE_OPERATIONAL = [
   'SCHEDULED',
@@ -380,6 +393,16 @@ function projectMatch(
       }
       const scheduledAt =
         row.scheduledAt ?? new Date(Math.max(now.getTime(), tournament.startsAt.getTime()));
+      if (tournament.matchCheckInMinutes === 0) {
+        // No match check-in configured: teams can play as soon as both are known.
+        return {
+          status: 'READY',
+          isBye: false,
+          scheduledAt,
+          checkInOpensAt: null,
+          checkInDeadline: null,
+        };
+      }
       return {
         status: 'SCHEDULED',
         isBye: false,

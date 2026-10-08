@@ -9,3 +9,4 @@ export * from './teams.js';
 export * from './tournaments.js';
 export * from './registrations.js';
 export * from './competition.js';
+export * from './matches.js';
