@@ -42,7 +42,7 @@ describe('state machines', () => {
   });
 
   it('rejects invalid transitions', () => {
-    expect(() => assertTransition(tournamentMachine, 'COMPLETED', 'DRAFT')).toThrow(
+    expect(() => assertTransition(tournamentMachine, 'CANCELLED', 'DRAFT')).toThrow(
       InvalidTransitionError,
     );
     expect(() => assertTransition(matchMachine, 'CANCELLED', 'READY')).toThrow(

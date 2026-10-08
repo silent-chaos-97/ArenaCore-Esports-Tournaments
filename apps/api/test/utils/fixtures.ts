@@ -142,3 +142,40 @@ export function registerTeam(
     .set(bearer(team.captain))
     .send({ teamId: team.teamId, members: team.roster, acceptRules: true, rulesVersion });
 }
+
+/** Registers and approves `count` teams; returns them in registration order. */
+export async function approvedTeams(
+  app: INestApplication,
+  org: OrgFixture,
+  tournamentId: string,
+  count: number,
+  teamOptions: Parameters<typeof createTeam>[1] = {},
+): Promise<(TeamFixture & { registrationId: string })[]> {
+  const out: (TeamFixture & { registrationId: string })[] = [];
+  for (let i = 0; i < count; i++) {
+    const team = await createTeam(app, teamOptions);
+    const reg = await registerTeam(app, tournamentId, team).expect(201);
+    await request(app.getHttpServer())
+      .post(
+        `/api/v1/orgs/${org.orgId}/tournaments/${tournamentId}/registrations/${reg.body.id}/approve`,
+      )
+      .set(bearer(org.owner))
+      .expect(200);
+    out.push({ ...team, registrationId: reg.body.id });
+  }
+  return out;
+}
+
+/** Tournament without a check-in window, so every approved team takes part. */
+export const NO_CHECK_IN = { checkInOpensAt: null, checkInClosesAt: null } as const;
+
+export function openCheckInWindow(): Record<string, string> {
+  const now = Date.now();
+  return {
+    registrationOpensAt: new Date(now - 2 * 3600_000).toISOString(),
+    registrationClosesAt: new Date(now + 1800_000).toISOString(),
+    checkInOpensAt: new Date(now - 3600_000).toISOString(),
+    checkInClosesAt: new Date(now + 3600_000).toISOString(),
+    startsAt: new Date(now + 2 * 3600_000).toISOString(),
+  };
+}

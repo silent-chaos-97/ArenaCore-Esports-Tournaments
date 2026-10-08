@@ -187,6 +187,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@arenacore/bracket':
+        specifier: workspace:*
+        version: link:../../packages/bracket
       '@arenacore/shared':
         specifier: workspace:*
         version: link:../../packages/shared

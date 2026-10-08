@@ -13,7 +13,8 @@ export const tournamentMachine = defineMachine<TournamentStatus>('tournament', {
   DRAFT: ['PUBLISHED', 'CANCELLED'],
   PUBLISHED: ['DRAFT', 'IN_PROGRESS', 'CANCELLED'],
   IN_PROGRESS: ['COMPLETED', 'CANCELLED'],
-  COMPLETED: [],
+  /** Re-opened only when a referee overturns a result that decided the champion. */
+  COMPLETED: ['IN_PROGRESS'],
   CANCELLED: [],
 });
 
