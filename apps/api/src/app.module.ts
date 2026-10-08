@@ -6,6 +6,7 @@ import { RateLimitGuard } from './common/rate-limit/rate-limit.js';
 import { ConfigModule } from './config/config.module.js';
 import { PrismaModule } from './infra/prisma/prisma.module.js';
 import { RedisModule } from './infra/redis.module.js';
+import { IdentityModule } from './modules/identity/identity.module.js';
 import { HealthController } from './modules/health/health.controller.js';
 import { MetricsModule } from './modules/metrics/metrics.module.js';
 
@@ -26,6 +27,7 @@ const isDev = process.env.NODE_ENV === 'development';
     PrismaModule,
     RedisModule,
     MetricsModule,
+    IdentityModule,
   ],
   controllers: [HealthController],
   providers: [

@@ -7,10 +7,16 @@ export const apiEnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1).default('redis://localhost:6379'),
   JWT_ACCESS_SECRET: z.string().min(32),
-  JWT_REFRESH_SECRET: z.string().min(32),
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().default(900),
   JWT_REFRESH_TTL_SECONDS: z.coerce.number().int().positive().default(1_209_600),
   MFA_ISSUER: z.string().default('ArenaCore'),
+  /** AUTH-02: Owner/Admin actions require an MFA-verified session when enabled. */
+  MFA_ENFORCED: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((v) => v === 'true'),
+  /** Key material for encrypting secrets at rest (e.g. TOTP seeds). */
+  DATA_ENCRYPTION_KEY: z.string().min(32),
   S3_ENDPOINT: z.string().url().optional(),
   S3_REGION: z.string().default('us-east-1'),
   S3_ACCESS_KEY: z.string().default('dev'),

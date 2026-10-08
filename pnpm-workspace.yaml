@@ -4,4 +4,5 @@ packages:
 allowBuilds:
   '@prisma/engines': true
   '@swc/core': true
+  argon2: true
   prisma: true

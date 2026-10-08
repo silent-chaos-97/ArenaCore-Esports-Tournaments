@@ -2,7 +2,9 @@ import { Controller, Get, HttpStatus, Inject, ServiceUnavailableException } from
 import type { Redis } from 'ioredis';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { REDIS } from '../../infra/redis.module.js';
+import { Public } from '../../common/auth/decorators.js';
 
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(

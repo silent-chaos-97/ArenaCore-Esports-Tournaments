@@ -12,6 +12,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import type { Request, Response } from 'express';
 import { collectDefaultMetrics, Histogram, Registry } from 'prom-client';
 import { finalize, Observable } from 'rxjs';
+import { Public } from '../../common/auth/decorators.js';
 
 @Injectable()
 export class MetricsService {
@@ -49,6 +50,7 @@ class HttpMetricsInterceptor implements NestInterceptor {
   }
 }
 
+@Public()
 @Controller()
 class MetricsController {
   constructor(private readonly metrics: MetricsService) {}

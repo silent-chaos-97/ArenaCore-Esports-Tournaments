@@ -203,6 +203,7 @@ model Session {
   userId    String    @db.Uuid
   familyId  String    @db.Uuid
   tokenHash String    @unique
+  mfa       Boolean   @default(false)
   expiresAt DateTime
   rotatedAt DateTime?
   revokedAt DateTime?
