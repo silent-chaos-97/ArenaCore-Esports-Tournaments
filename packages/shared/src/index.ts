@@ -12,3 +12,4 @@ export * from './competition.js';
 export * from './matches.js';
 export * from './disputes.js';
 export * from './notifications.js';
+export * from './public.js';

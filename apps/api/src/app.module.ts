@@ -15,6 +15,8 @@ import { CompetitionModule } from './modules/competition/competition.module.js';
 import { MatchesModule } from './modules/matches/matches.module.js';
 import { DisputesModule } from './modules/disputes/disputes.module.js';
 import { StorageModule } from './infra/storage/storage.service.js';
+import { PublicModule } from './modules/public/public.module.js';
+import { CacheModule } from './infra/cache/cache.service.js';
 import { RealtimeModule } from './modules/realtime/realtime.module.js';
 import { EventsModule } from './modules/events/events.module.js';
 import { NotificationsModule } from './modules/notifications/notifications.module.js';
@@ -38,6 +40,7 @@ const isDev = process.env.NODE_ENV === 'development';
     }),
     PrismaModule,
     StorageModule,
+    CacheModule,
     RedisModule,
     MetricsModule,
     PlatformModule,
@@ -52,6 +55,7 @@ const isDev = process.env.NODE_ENV === 'development';
     NotificationsModule,
     EventsModule,
     RealtimeModule,
+    PublicModule,
   ],
   controllers: [HealthController],
   providers: [

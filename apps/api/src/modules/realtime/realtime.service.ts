@@ -81,6 +81,12 @@ export class RealtimeService implements OnModuleDestroy {
     return this.events$.pipe(filter((e) => e.tournamentId === tournamentId));
   }
 
+  /** Every public event (used for cache invalidation). */
+  all$(): Observable<LiveEvent> {
+    this.ensureSubscribed();
+    return this.events$.asObservable();
+  }
+
   user$(userId: string): Observable<UserMessage['notification']> {
     this.ensureSubscribed();
     return this.notifications$.pipe(

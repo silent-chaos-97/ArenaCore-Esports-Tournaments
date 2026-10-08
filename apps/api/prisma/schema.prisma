@@ -304,6 +304,7 @@ model Player {
   captainOf           Team[]               @relation("TeamCaptain")
   registrationMembers RegistrationMember[]
 
+  @@index([displayName(ops: raw("gin_trgm_ops"))], map: "players_display_name_trgm_idx", type: Gin)
   @@map("players")
 }
 
@@ -349,6 +350,7 @@ model Team {
   participants  MatchParticipant[]
   standings     Standing[]
 
+  @@index([name(ops: raw("gin_trgm_ops"))], map: "teams_name_trgm_idx", type: Gin)
   @@map("teams")
 }
 
@@ -390,38 +392,40 @@ model TeamInvite {
 // ───────────────────────────── Tournaments ─────────────────────────────
 
 model Tournament {
-  id                   String           @id @default(uuid(7)) @db.Uuid
-  organizationId       String           @db.Uuid
-  gameId               String           @db.Uuid
+  id                   String                   @id @default(uuid(7)) @db.Uuid
+  organizationId       String                   @db.Uuid
+  gameId               String                   @db.Uuid
   name                 String
-  slug                 String           @unique
+  slug                 String                   @unique
   description          String?
   region               String
-  platform             String           @default("PC")
+  platform             String                   @default("PC")
   format               TournamentFormat
   teamSize             Int
-  maxSubstitutes       Int              @default(0)
+  maxSubstitutes       Int                      @default(0)
   maxTeams             Int
-  bestOf               Int              @default(1)
+  bestOf               Int                      @default(1)
   finalsBestOf         Int?
-  grandFinalReset      Boolean          @default(true)
-  requireApproval      Boolean          @default(true)
+  grandFinalReset      Boolean                  @default(true)
+  requireApproval      Boolean                  @default(true)
   minAge               Int?
   registrationOpensAt  DateTime
   registrationClosesAt DateTime
   checkInOpensAt       DateTime?
   checkInClosesAt      DateTime?
   startsAt             DateTime
-  matchCheckInMinutes  Int              @default(15)
-  status               TournamentStatus @default(DRAFT)
-  rules                String           @default("")
-  rulesVersion         Int              @default(1)
+  matchCheckInMinutes  Int                      @default(15)
+  status               TournamentStatus         @default(DRAFT)
+  rules                String                   @default("")
+  rulesVersion         Int                      @default(1)
   prizeInfo            String?
   publishedAt          DateTime?
-  createdById          String           @db.Uuid
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
-  version              Int              @default(0)
+  createdById          String                   @db.Uuid
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  version              Int                      @default(0)
+  /// Generated full-text search vector (see migration add_search).
+  search               Unsupported("tsvector")? @default(dbgenerated())
 
   organization  Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   game          Game              @relation(fields: [gameId], references: [id])
@@ -434,6 +438,7 @@ model Tournament {
 
   @@index([organizationId, status])
   @@index([status, startsAt])
+  @@index([search], map: "tournaments_search_idx", type: Gin)
   @@map("tournaments")
 }
 
