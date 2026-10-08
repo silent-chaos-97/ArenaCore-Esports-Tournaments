@@ -16,7 +16,7 @@ describe('API skeleton', () => {
   it('reports liveness and readiness', async () => {
     await request(app.getHttpServer()).get('/api/v1/health').expect(200, { status: 'ok' });
     const ready = await request(app.getHttpServer()).get('/api/v1/health/ready').expect(200);
-    expect(ready.body.checks.redis).toBe('up');
+    expect(ready.body.checks).toEqual({ redis: 'up', database: 'up' });
   });
 
   it('echoes a valid inbound request id and generates one otherwise', async () => {

@@ -2,7 +2,7 @@
   "name": "arenacore",
   "private": true,
   "version": "0.1.0",
-  "description": "ArenaCore — Esports Tournament & League Operations Platform",
+  "description": "ArenaCore \u2014 Esports Tournament & League Operations Platform",
   "packageManager": "pnpm@12.10.1",
   "engines": {
     "node": ">=22"
@@ -14,7 +14,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm -r --if-present test"
+    "test": "pnpm -r --if-present test",
+    "db:migrate": "pnpm --filter @arenacore/api db:migrate",
+    "db:deploy": "pnpm --filter @arenacore/api db:deploy",
+    "db:seed": "pnpm --filter @arenacore/api db:seed",
+    "db:reset": "pnpm --filter @arenacore/api db:reset"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

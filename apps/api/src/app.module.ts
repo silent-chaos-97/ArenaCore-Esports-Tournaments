@@ -4,6 +4,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { ProblemDetailsFilter } from './common/errors/problem-details.filter.js';
 import { RateLimitGuard } from './common/rate-limit/rate-limit.js';
 import { ConfigModule } from './config/config.module.js';
+import { PrismaModule } from './infra/prisma/prisma.module.js';
 import { RedisModule } from './infra/redis.module.js';
 import { HealthController } from './modules/health/health.controller.js';
 import { MetricsModule } from './modules/metrics/metrics.module.js';
@@ -22,6 +23,7 @@ const isDev = process.env.NODE_ENV === 'development';
         transport: isDev ? { target: 'pino-pretty', options: { singleLine: true } } : undefined,
       },
     }),
+    PrismaModule,
     RedisModule,
     MetricsModule,
   ],

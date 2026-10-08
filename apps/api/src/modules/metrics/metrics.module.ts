@@ -38,16 +38,14 @@ class HttpMetricsInterceptor implements NestInterceptor {
     const req = context.switchToHttp().getRequest<Request>();
     const res = context.switchToHttp().getResponse<Response>();
     const end = this.metrics.httpDuration.startTimer({ method: req.method });
-    return next
-      .handle()
-      .pipe(
-        finalize(() =>
-          end({
-            route: (req.route as { path?: string } | undefined)?.path ?? 'unknown',
-            status: res.statusCode,
-          }),
-        ),
-      );
+    return next.handle().pipe(
+      finalize(() =>
+        end({
+          route: (req.route as { path?: string } | undefined)?.path ?? 'unknown',
+          status: res.statusCode,
+        }),
+      ),
+    );
   }
 }
 
