@@ -1,0 +1,95 @@
+@import 'tailwindcss';
+
+/*
+ * ArenaCore tokens — "bracket sheet": cool paper, navy ink, cobalt action,
+ * amber for live/attention, green for wins. Dark mode is deep navy, not black.
+ */
+@theme {
+  --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-barlow-condensed), var(--font-barlow), ui-sans-serif, sans-serif;
+
+  --color-paper: #f3f5f8;
+  --color-surface: #ffffff;
+  --color-ink: #121a2b;
+  --color-muted: #5b6578;
+  --color-rule: #d5dae3;
+  --color-cobalt: #2648d8;
+  --color-cobalt-ink: #1a36ad;
+  --color-cobalt-wash: #e5ebfc;
+  --color-amber: #e8a317;
+  --color-amber-wash: #fdf3dc;
+  --color-win: #1f8a5b;
+  --color-win-wash: #e1f3ea;
+  --color-loss: #b8392b;
+  --color-loss-wash: #fbe7e4;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --color-paper: #0f1626;
+      --color-surface: #162036;
+      --color-ink: #e8edf6;
+      --color-muted: #9aa5ba;
+      --color-rule: #2a3651;
+      --color-cobalt: #6f8cff;
+      --color-cobalt-ink: #9cb0ff;
+      --color-cobalt-wash: #1d2a52;
+      --color-amber: #f2b93b;
+      --color-amber-wash: #3a2f12;
+      --color-win: #45c08a;
+      --color-win-wash: #133528;
+      --color-loss: #f07f6f;
+      --color-loss-wash: #3d1d1a;
+    }
+  }
+
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: 'tnum' 1;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: 0.01em;
+    line-height: 1.05;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-cobalt);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* The one animated element in the product: a live match indicator. */
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.live-dot {
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
