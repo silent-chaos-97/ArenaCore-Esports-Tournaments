@@ -251,6 +251,31 @@ export async function playMatch(
       .post(`/api/v1/matches/${match.id}/results`)
       .set(bearer(started.captainOf(side.registrationId)))
       .send({ scoreA, scoreB })
-      .expect(200);
+      .expect((res) => {
+        if (res.status !== 200)
+          throw new Error(
+            `report on ${match.key} failed: ${res.status} ${JSON.stringify(res.body)}`,
+          );
+      });
   }
+}
+
+/** Invites a user into the org with the given role and returns them. */
+export async function addStaff(
+  app: INestApplication,
+  org: OrgFixture,
+  role: 'ADMIN' | 'REFEREE' | 'VIEWER',
+): Promise<TestUser> {
+  const user = await registerUser(app);
+  const invite = await request(app.getHttpServer())
+    .post(`/api/v1/orgs/${org.orgId}/invites`)
+    .set(bearer(org.owner))
+    .send({ email: user.email, role })
+    .expect(201);
+  await request(app.getHttpServer())
+    .post('/api/v1/invites/accept')
+    .set(bearer(user))
+    .send({ token: invite.body.token })
+    .expect(200);
+  return user;
 }

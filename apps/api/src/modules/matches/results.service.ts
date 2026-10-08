@@ -93,7 +93,8 @@ export class ResultsService {
         own.scoreB === input.scoreB
       )
         return;
-      if (own && own.status !== 'SUBMITTED') {
+      // Superseded reports (after a replay or ruling) are reused for the new report.
+      if (own && own.status !== 'SUBMITTED' && own.status !== 'SUPERSEDED') {
         throw new DomainError('RESULT_LOCKED', 'Your report has already been processed', 409);
       }
       const data = {
@@ -102,6 +103,7 @@ export class ResultsService {
         winnerSlot,
         reportedById: userId,
         reportedBySlot: side.slot,
+        status: 'SUBMITTED' as const,
       };
       const mine = own
         ? await tx.matchResult.update({ where: { id: own.id }, data })
@@ -165,6 +167,7 @@ export class ResultsService {
         description: `Conflicting score reports: A reported ${scoreText(side.slot === 'A' ? mine : theirs)}, B reported ${scoreText(side.slot === 'B' ? mine : theirs)}.`,
         openedById: null,
         openedBySlot: null,
+        matchStatusBefore: 'RESULT_PENDING',
       });
     });
     return this.summary(matchId);
@@ -327,6 +330,7 @@ export class ResultsService {
             description: `Game data (${payload.scoreA}-${payload.scoreB}) contradicts the recorded result.`,
             openedById: null,
             openedBySlot: null,
+            matchStatusBefore: match.status,
           });
         }
         return {

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { DisputeReason } from '@arenacore/shared';
 import { OutboxService } from '../../common/outbox/outbox.service.js';
 import type { Tx } from '../../infra/prisma/prisma.service.js';
-import type { Dispute, Match, MatchSlot } from '../../generated/prisma/client.js';
+import type { Dispute, Match, MatchSlot, MatchStatus } from '../../generated/prisma/client.js';
 
 export interface OpenDisputeParams {
   match: Match;
@@ -10,6 +10,8 @@ export interface OpenDisputeParams {
   description: string;
   openedById: string | null;
   openedBySlot: MatchSlot | null;
+  /** Status to restore if the result stands. */
+  matchStatusBefore: MatchStatus | null;
 }
 
 /** Creates a dispute and announces it; shared by players, referees and the result pipeline. */
@@ -31,6 +33,7 @@ export class DisputeFactory {
         description: params.description,
         openedById: params.openedById,
         openedBySlot: params.openedBySlot,
+        matchStatusBefore: params.matchStatusBefore,
       },
     });
     await this.outbox.emit(tx, {
@@ -44,6 +47,7 @@ export class DisputeFactory {
         tournamentId: params.match.tournamentId,
         reason: params.reason,
         openedBySlot: params.openedBySlot,
+        matchStatusBefore: params.matchStatusBefore,
       },
     });
     return dispute;

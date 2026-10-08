@@ -67,7 +67,8 @@ export const matchMachine = defineMachine<MatchStatus>('match', {
   READY: ['IN_PROGRESS', 'RESULT_PENDING', 'COMPLETED', 'FORFEITED', 'CANCELLED'],
   IN_PROGRESS: ['RESULT_PENDING', 'COMPLETED', 'DISPUTED', 'FORFEITED', 'CANCELLED'],
   RESULT_PENDING: ['COMPLETED', 'DISPUTED', 'FORFEITED', 'CANCELLED'],
-  DISPUTED: ['COMPLETED', 'FORFEITED', 'CANCELLED'],
+  /** Referee rulings: restore, overturn, forfeit, replay (READY) or await new reports. */
+  DISPUTED: ['COMPLETED', 'FORFEITED', 'CANCELLED', 'READY', 'RESULT_PENDING'],
   COMPLETED: ['DISPUTED'],
   FORFEITED: ['DISPUTED'],
   CANCELLED: [],
