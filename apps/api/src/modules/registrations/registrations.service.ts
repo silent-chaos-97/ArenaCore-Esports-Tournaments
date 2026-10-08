@@ -30,7 +30,9 @@ const ACTIVE: RegistrationStatus[] = [
 const EDITABLE_ROSTER: RegistrationStatus[] = ['SUBMITTED', 'VALIDATION_FAILED', 'UNDER_REVIEW'];
 
 const registrationInclude = {
-  tournament: { select: { name: true } },
+  tournament: {
+    select: { name: true, slug: true, status: true, checkInOpensAt: true, checkInClosesAt: true },
+  },
   team: { select: { name: true } },
   members: { include: { player: true, gameAccount: true } },
 } satisfies Prisma.RegistrationInclude;
@@ -465,6 +467,15 @@ export function toDto(r: RegistrationRow): RegistrationDto {
     id: r.id,
     tournamentId: r.tournamentId,
     tournamentName: r.tournament.name,
+    tournamentSlug: r.tournament.slug,
+    tournamentStatus: r.tournament.status,
+    checkInWindow:
+      r.tournament.checkInOpensAt && r.tournament.checkInClosesAt
+        ? {
+            opensAt: r.tournament.checkInOpensAt.toISOString(),
+            closesAt: r.tournament.checkInClosesAt.toISOString(),
+          }
+        : null,
     teamId: r.teamId,
     teamName: r.team.name,
     status: r.status,

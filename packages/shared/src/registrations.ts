@@ -62,6 +62,10 @@ export interface RegistrationDto {
   id: string;
   tournamentId: string;
   tournamentName: string;
+  tournamentSlug: string;
+  tournamentStatus: string;
+  /** Tournament check-in window, when the event uses one. */
+  checkInWindow: { opensAt: string; closesAt: string } | null;
   teamId: string;
   teamName: string;
   status: string;
