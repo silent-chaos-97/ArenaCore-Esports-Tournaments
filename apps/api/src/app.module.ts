@@ -8,6 +8,7 @@ import { PrismaModule } from './infra/prisma/prisma.module.js';
 import { RedisModule } from './infra/redis.module.js';
 import { PlatformModule } from './common/platform.module.js';
 import { OrganizationsModule } from './modules/organizations/organizations.module.js';
+import { TeamsModule } from './modules/teams/teams.module.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
 import { HealthController } from './modules/health/health.controller.js';
 import { MetricsModule } from './modules/metrics/metrics.module.js';
@@ -32,6 +33,7 @@ const isDev = process.env.NODE_ENV === 'development';
     PlatformModule,
     IdentityModule,
     OrganizationsModule,
+    TeamsModule,
   ],
   controllers: [HealthController],
   providers: [
