@@ -25,10 +25,13 @@ export function TournamentLive({ initial }: { initial: PublicTournamentDetail })
   const slug = initial.slug;
   const client = useQueryClient();
   const base = `/public/tournaments/${slug}`;
+  // Server-rendered data paints immediately; mark it stale so the client confirms it on load
+  // (the page may have been prefetched before the latest result).
   const detail = useQuery({
     queryKey: ['public', slug, 'detail'],
     queryFn: () => api<PublicTournamentDetail>(base),
     initialData: initial,
+    initialDataUpdatedAt: 0,
   });
   const t = detail.data;
   const started = t.status === 'IN_PROGRESS' || t.status === 'COMPLETED';
