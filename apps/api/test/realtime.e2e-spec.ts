@@ -139,6 +139,12 @@ describe('real-time streams (SSE)', () => {
   it('requires a token for the private stream and hides draft tournaments', async () => {
     expect((await fetch(`${base}/me/stream`)).status).toBe(401);
     const draft = await createTournament(app, org, {}, false);
-    expect((await fetch(`${base}/tournaments/${draft.id}/stream`)).status).toBe(404);
+    // Repeat: the rejection used to race the SSE headers and occasionally return 200.
+    for (let i = 0; i < 10; i++) {
+      expect((await fetch(`${base}/tournaments/${draft.id}/stream`)).status).toBe(404);
+    }
+    expect(
+      (await fetch(`${base}/tournaments/00000000-0000-4000-8000-000000000000/stream`)).status,
+    ).toBe(404);
   });
 });
