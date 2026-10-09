@@ -38,14 +38,14 @@ jobs:
         image: axllent/mailpit:latest
         ports: ['1025:1025', '8025:8025']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
       - run: cp .env.example .env
+      - run: pnpm install --frozen-lockfile
       - name: Build workspace packages
         run: pnpm --filter "./packages/*" build
       - name: Apply migrations
@@ -84,14 +84,14 @@ jobs:
         image: axllent/mailpit:latest
         ports: ['1025:1025', '8025:8025']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
       - run: cp .env.example .env
+      - run: pnpm install --frozen-lockfile
       - run: pnpm --filter "./packages/*" build
       - run: pnpm db:deploy && pnpm db:seed
       - run: pnpm exec playwright install --with-deps chromium

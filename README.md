@@ -34,8 +34,8 @@ packages/shared   zod schemas, enums and state machines shared by API and web
 Requirements: Node 22+, pnpm 12+ and Docker.
 
 ```bash
-pnpm install
 cp .env.example .env
+pnpm install
 docker compose up -d                  # postgres, redis, s3mock (S3), mailpit
 pnpm --filter "./packages/*" build
 pnpm db:migrate && pnpm db:seed       # schema + game catalog
