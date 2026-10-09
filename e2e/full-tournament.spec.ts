@@ -88,9 +88,12 @@ test('a full single-elimination tournament from creation to champion', async ({
 
   // ── Organizer approves everyone and starts (criteria 3, 5, 6) ──
   await page.goto(`${consoleUrl}?tab=registrations`);
-  for (let i = 0; i < 4; i++) {
-    await page.getByRole('button', { name: 'Approve', exact: true }).first().click();
-    await expect(page.getByText('Registration updated').last()).toBeVisible();
+  const approveButtons = page.getByRole('button', { name: 'Approve', exact: true });
+  await expect(approveButtons).toHaveCount(4);
+  for (let remaining = 4; remaining > 0; remaining--) {
+    await approveButtons.first().click();
+    // Wait for the list to refresh rather than a toast, which may linger from the previous click.
+    await expect(approveButtons).toHaveCount(remaining - 1);
   }
   await page.getByRole('tab', { name: /Accepted/ }).click();
   await expect(page.getByRole('row')).toHaveCount(5);
